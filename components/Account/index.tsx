@@ -29,7 +29,7 @@ import { useEffect, useState } from 'react';
 import StepChart from '@/components/StepChart';
 import Step7dayChart from "../SevenDayStep";
 import GaugeChart from "../GaugeChart/GaugeChart";
-import {Image} from "@nextui-org/image";
+import { Image } from "@nextui-org/image";
 import LogoutIcon from "@/asset/icon/LogoutIcon";
 
 interface FitnessData {
@@ -50,30 +50,42 @@ interface Total {
     minute: number;
     coin: number;
 }
-  
+
 
 const Account = () => {
     const [selectedTab, setSelectedTab] = useTab('2');
     const router = useRouter();
+    const [selectedFile, setSelectedFile] = useState(null);
     function changeTabHandler(value: string) {
         setSelectedTab(value);
     }
     const [stepData, setStepData] = useState<StepData[]>([]);
-    const [email,setEmail] = useState("")
-    const [fitData, setFitData] = useState<FitnessData>({steps:0,distance:0,activeDuration:0,calories:0});
-    const [toTal,setTotal] = useState<Total>({distance:25.06,hour:25,minute:10,coin:256});
+    const [email, setEmail] = useState("")
+    const [fitData, setFitData] = useState<FitnessData>({ steps: 0, distance: 0, activeDuration: 0, calories: 0 });
+    const [toTal, setTotal] = useState<Total>({ distance: 25.06, hour: 25, minute: 10, coin: 256 });
     const { data: session } = useSession() || {};
     useEffect(() => {
         async function fetchStepData() {
-          const response = await fetch('/api/getDailyStep');
-          const data = await response.json();
-          console.log(data);
-          setStepData(data);
+            const response = await fetch('/api/getDailyStep');
+            const data = await response.json();
+            console.log(data);
+            setStepData(data);
         }
 
         fetchStepData();
         fetchUserData();
-      }, []);
+    }, []);
+
+    const handleFileChange = (e: any) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setSelectedFile(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const fetchFitData = async () => {
         try {
@@ -95,22 +107,22 @@ const Account = () => {
         return () => clearInterval(intervalId);
     }, []);
 
-    const goToProfile = () =>{
-        
+    const goToProfile = () => {
+
     }
 
     const fetchUserData = async () => {
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/get/getUser?email=${session?.user?.email}`);
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          const result = await response.json();
-          console.log(result);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/get/getUser?email=${session?.user?.email}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const result = await response.json();
+            console.log(result);
         } catch (error) {
-          console.log(error);
+            console.log(error);
         }
-      }
+    }
 
     const onClaimSuccess = (updatedFitData: Total) => {
         setTotal({
@@ -119,7 +131,7 @@ const Account = () => {
             minute: toTal.minute + updatedFitData.minute,
             coin: toTal.coin + updatedFitData.coin
         });
-      };
+    };
 
     return (
         <>
@@ -165,7 +177,18 @@ const Account = () => {
                 </div>
             </div>
             <div className="flex justify-center items-center my-8">
-                <GaugeChart value={fitData.steps} maxValue={10000} onClaimSuccess={onClaimSuccess}/>
+                <GaugeChart value={fitData.steps} maxValue={10000} onClaimSuccess={onClaimSuccess} />
+            </div>
+            <div className="flex flex-col items-center justify-center mt-8">
+                <label htmlFor="file-upload" className="custom-file-upload">
+                    <i className="fa fa-cloud-upload"></i> Upload Photo
+                </label>
+                <input id="file-upload" type="file" onChange={handleFileChange} style={{ display: 'none' }} />
+                {selectedFile && (
+                    <div className="image-preview mt-4">
+                        <Image src={selectedFile} alt="Preview" width={50} height={50} />
+                    </div>
+                )}
             </div>
             <div className="my-10">
                 <h1 className="text-center mb-4 text-xl font-bold">Your step in 7 days ago</h1>
@@ -174,7 +197,8 @@ const Account = () => {
                 ) : (
                     <p className="text-center">Loading step data...</p>
                 )}
-            </div>  
+            </div>
+
 
             <Tabs
                 value={selectedTab}
@@ -206,7 +230,7 @@ const Account = () => {
                         <div className="p-2 bg-[#FFFCEB] border border-[#FFF3AD] rounded-full"><AvgPaceIcon /></div>
                         <div>
                             <h3 className="text-xs leading-normal text-[#1FB319]">Avg Pace</h3>
-                            <span>{(fitData.distance/1000).toFixed(2)}</span> <span className="text-xs leading-normal text-[#81819C]">km</span>
+                            <span>{(fitData.distance / 1000).toFixed(2)}</span> <span className="text-xs leading-normal text-[#81819C]">km</span>
                         </div>
                     </div>
                     <div className="px-4 py-2 flex items-center gap-x-3 border border-[#521400]/0.1 rounded-lg">
