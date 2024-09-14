@@ -51,11 +51,16 @@ interface Total {
     coin: number;
 }
 
+interface FileState {
+    preview: string | null;
+    file: File | null;
+}
+
 
 const Account = () => {
     const [selectedTab, setSelectedTab] = useTab('2');
     const router = useRouter();
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFile, setSelectedFile] = useState<FileState>({ preview: null, file: null });
     function changeTabHandler(value: string) {
         setSelectedTab(value);
     }
@@ -76,12 +81,15 @@ const Account = () => {
         fetchUserData();
     }, []);
 
-    const handleFileChange = (e: any) => {
-        const file = e.target.files[0];
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setSelectedFile(reader.result);
+                setSelectedFile({
+                    preview: reader.result as string,
+                    file: file
+                });
             };
             reader.readAsDataURL(file);
         }
@@ -184,9 +192,9 @@ const Account = () => {
                     <i className="fa fa-cloud-upload"></i> Upload Photo
                 </label>
                 <input id="file-upload" type="file" onChange={handleFileChange} style={{ display: 'none' }} />
-                {selectedFile && (
+                {selectedFile.preview && (
                     <div className="image-preview mt-4">
-                        <Image src={selectedFile} alt="Preview" width={50} height={50} />
+                        <Image src={selectedFile.preview} alt="Preview" width={50} height={50} />
                     </div>
                 )}
             </div>
